@@ -41,7 +41,7 @@ long toNum(char* str) {
 }
 
 int main(int argc, char** argv) {
-	long seed;
+	long seed = 0;
 	char seedSet = 0;
 	int minX = -100, minZ = -100, maxX = 100, maxZ = 100;
 
