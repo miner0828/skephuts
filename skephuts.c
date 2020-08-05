@@ -26,27 +26,33 @@ int main() {
 		for (int z = minZ; z < maxZ; z++) {
 			//printf("(%d, %d)\n", x, z);
 			Pos	pos = getStructurePos(SWAMP_HUT_CONFIG, seed, x, z);
-			if (getBiomeAtPos(g, pos) == swamp) {
+			if (isViableStructurePos(SWAMP_HUT_CONFIG, MC_1_16, &g, seed, pos.x, pos.z)) {
 				//printf("(%d, %d)\n", pos.x, pos.z);
 				doesRegionHaveHut[x+100][z+100] = 1;
-				if (!(x == minX || z == minZ || x == minZ-1 || z == maxZ-1)){
-					if (doesRegionHaveHut[x+100-1][z+100] == 1)
-						possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z));
-					if (doesRegionHaveHut[x+100][z+100-1] == 1)
-						possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x, z-1));
-					if (doesRegionHaveHut[x+100-1][z+100-1] == 1)
-						possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z-1));
-					if (doesRegionHaveHut[x+100+1][z+100] == 1)
-						possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x+1, z));
-					if (doesRegionHaveHut[x+100][z+100+1] == 1)
-						possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x, z+1));
-					if (doesRegionHaveHut[x+100+1][z+100+1] == 1)
-						possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x+1, z+1));
-					if (doesRegionHaveHut[x+100-1][z+100+1] == 1)
-						possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z+1));
-					if (doesRegionHaveHut[x+100+1][z+100-1] == 1)
-						possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x+1, z-1));
-				}
+			}
+		}
+	}
+
+	for (int x = minX+1; x < maxX-1; x++) {
+		for (int z = minZ+1; z < maxZ-1; z++) {
+			Pos pos = getStructurePos(SWAMP_HUT_CONFIG, seed, x, z);
+			if (doesRegionHaveHut[x+100][z+100]) {
+				if (doesRegionHaveHut[x+100-1][z+100] == 1)
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z));
+				if (doesRegionHaveHut[x+100][z+100-1] == 1)
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x, z-1));
+				if (doesRegionHaveHut[x+100-1][z+100-1] == 1)
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z-1));
+				if (doesRegionHaveHut[x+100+1][z+100] == 1)
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x+1, z));
+				if (doesRegionHaveHut[x+100][z+100+1] == 1)
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x, z+1));
+				if (doesRegionHaveHut[x+100+1][z+100+1] == 1)
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x+1, z+1));
+				if (doesRegionHaveHut[x+100-1][z+100+1] == 1)
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z+1));
+				if (doesRegionHaveHut[x+100+1][z+100-1] == 1)
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x+1, z-1));
 			}
 		}
 	}
