@@ -14,7 +14,7 @@ make
 ### Usage
 
 skephuts [options] <seed>
-Valid options:\n"
+Valid options:
    -h      Prints this message.
    -d      Includes the distance from one witch hut to the other
    -o      Includes the distance from the first witch hut to the origin.
