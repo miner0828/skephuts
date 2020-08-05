@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
 
 	//1 extra on each side for padding so accessing it for checking doesnt go out of bounds
 	size_t DRHHSize = ((maxX-minX)+1)*((maxZ-minZ)+1)*sizeof(int);
-	int* doesRegionHaveHut = malloc(DRHHSize);
+	int (*doesRegionHaveHut)[(maxZ-minZ)+1] = malloc(DRHHSize);
 	memset(doesRegionHaveHut, 0, DRHHSize);
 
 	int offsetX = (-minX)+1, offsetZ = (-minZ)+1;
