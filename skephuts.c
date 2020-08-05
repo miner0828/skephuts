@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 #include "cubiomes/finders.h"
+
+int count = 0;
 
 void possible(Pos pos1, Pos pos2) {
 	//printf("(%d, %d)\n", pos1.x, pos1.z);
@@ -8,6 +11,7 @@ void possible(Pos pos1, Pos pos2) {
 	if (dist < 256) {
 		double originDist = sqrt((((long)pos2.x)*pos2.x) + (((long)pos2.z)*pos2.z));
 		printf("(%d, %d), (%d, %d), %lf, %lf\n", pos1.x, pos1.z, pos2.x, pos2.z, dist, originDist);
+		count++;
 	}
 }
 
@@ -15,7 +19,8 @@ int main() {
 	initBiomes();
 
 	long seed = 8054221181584912980;
-
+	
+	clock_t start_time = clock();
 	LayerStack g = setupGenerator(MC_1_16);
 	applySeed(&g, seed);
 
@@ -58,5 +63,8 @@ int main() {
 	}
 
 	freeGenerator(g);
+	clock_t end_time = clock();
+	printf("Found %d double huts in %lf seconds\n", count, ((double) end_time - start_time) / CLOCKS_PER_SEC);
+
 	return 0;
 }
