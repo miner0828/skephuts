@@ -25,7 +25,8 @@ int main() {
 	applySeed(&g, seed);
 
 	int minX = -100, minZ = -100, maxX = 100, maxZ = 100;
-	int doesRegionHaveHut[200][200] = {0};
+	//1 extra on each side for padding so accessing it for checking doesnt go out of bounds
+	int doesRegionHaveHut[201][201] = {0};
 
 	for (int x = minX; x < maxX; x++) {
 		for (int z = minZ; z < maxZ; z++) {
@@ -33,31 +34,15 @@ int main() {
 			Pos	pos = getStructurePos(SWAMP_HUT_CONFIG, seed, x, z);
 			if (isViableStructurePos(SWAMP_HUT_CONFIG, MC_1_16, &g, seed, pos.x, pos.z)) {
 				//printf("(%d, %d)\n", pos.x, pos.z);
-				doesRegionHaveHut[x+100][z+100] = 1;
-			}
-		}
-	}
-
-	for (int x = minX+1; x < maxX-1; x++) {
-		for (int z = minZ+1; z < maxZ-1; z++) {
-			Pos pos = getStructurePos(SWAMP_HUT_CONFIG, seed, x, z);
-			if (doesRegionHaveHut[x+100][z+100]) {
-				if (doesRegionHaveHut[x+100-1][z+100] == 1)
+				doesRegionHaveHut[x+101][z+101] = 1;
+				if (doesRegionHaveHut[x+101-1][z+101] == 1)
 					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z));
-				if (doesRegionHaveHut[x+100][z+100-1] == 1)
+				if (doesRegionHaveHut[x+101][z+101-1] == 1)
 					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x, z-1));
-				if (doesRegionHaveHut[x+100-1][z+100-1] == 1)
+				if (doesRegionHaveHut[x+101-1][z+101-1] == 1)
 					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z-1));
-				if (doesRegionHaveHut[x+100+1][z+100] == 1)
-					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x+1, z));
-				if (doesRegionHaveHut[x+100][z+100+1] == 1)
-					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x, z+1));
-				if (doesRegionHaveHut[x+100+1][z+100+1] == 1)
-					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x+1, z+1));
-				if (doesRegionHaveHut[x+100-1][z+100+1] == 1)
+				if (doesRegionHaveHut[x+101-1][z+101+1] == 1)
 					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z+1));
-				if (doesRegionHaveHut[x+100+1][z+100-1] == 1)
-					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x+1, z-1));
 			}
 		}
 	}
