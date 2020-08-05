@@ -13,7 +13,7 @@ make
 
 ### Usage
 
-skephuts [options] <seed>
+skephuts [options] \<seed\>
    
 Valid options:
    
