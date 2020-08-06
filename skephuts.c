@@ -8,20 +8,74 @@
 
 #define DIST_FLAG (1 << 0)
 #define ORIGIN_DIST_FLAG (1 << 1)
+#define SHOW_DUB_FLAG (1 << 2)
+#define SHOW_TRI_FLAG (1 << 3)
 
-int count = 0;
+long seed = 0;
+int count = 0, coll, offsetX, offsetZ;
 unsigned int flags = 0;
 
-void possible(Pos pos1, Pos pos2) {
-	//printf("(%d, %d)\n", pos1.x, pos1.z);
-	double dist = sqrt((pos2.x - pos1.x)*(pos2.x - pos1.x) + (pos2.z - pos1.z)*(pos2.z - pos1.z));
+static inline double distance(Pos pos1, Pos pos2) {
+	return sqrt((((double)pos2.x - pos1.x)*(pos2.x - pos1.x)) + (((double)pos2.z - pos1.z)*(pos2.z - pos1.z)));
+}
+static inline Pos blockToRegion(Pos pos) {
+	if (pos.x < 0)
+		pos.x -= 512;
+	if (pos.z < 0)
+		pos.z -= 512;
+	Pos region = {((int) pos.x) / 512, ((int) pos.z) / 512};
+	return region;
+}
+
+int possibleTri(Pos pos1, Pos pos2, Pos region2, int region3x, int region3z, char (*DRHH)[coll]) {
+	//printf("reg2x %d reg3x %d reg2z %d reg3z %d\n", region2.x, region3x, region2.z, region3z);
+	if ((DRHH[region3x+offsetX][region3z+offsetZ]) && !((region2.x == region3x) && (region2.z == region3z))) {
+		Pos	pos3 = getStructurePos(SWAMP_HUT_CONFIG, seed, region3x, region3z);
+
+		double dist12 = distance(pos1, pos2), dist23 = distance(pos2, pos3), dist13 = distance(pos1, pos3);
+		if ((dist12 < 256) && (dist23 < 256) && (dist13 < 256)) {
+			if (!(flags & SHOW_TRI_FLAG)) {
+				return 0;
+			}
+			printf("3 (%d, %d), (%d, %d), (%d, %d)", pos1.x, pos1.z, pos2.x, pos2.z, pos3.x, pos3.z);
+			if (flags & DIST_FLAG)
+				printf(", %lf", (dist12 + dist23 + dist13) / 3);
+			if (flags & ORIGIN_DIST_FLAG) {
+				Pos origin = {0, 0};
+				double originDist = distance(pos1, origin);
+				printf(", %lf", originDist);
+			}
+			printf("\n");
+			count++;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int testTri(Pos pos1, Pos pos2, char (*DRHH)[coll]) {
+	Pos region1 = blockToRegion(pos1);
+	Pos region2 = blockToRegion(pos2);
 	
+	if (possibleTri(pos1, pos2, region2, region1.x, region1.z-1, DRHH)) return 1; 
+	else if (possibleTri(pos1, pos2, region2, region1.x-1, region1.z-1, DRHH)) return 1; 
+	else if (possibleTri(pos1, pos2, region2, region1.x-1, region1.z, DRHH)) return 1;
+	else if (possibleTri(pos1, pos2, region2, region1.x-1, region1.z+1, DRHH)) return 1;
+	return 0;
+}
+
+void possible(Pos pos1, Pos pos2, char (*DRHH)[coll]) {
+	//printf("(%d, %d)\n", pos1.x, pos1.z);
+	double dist = distance(pos1, pos2);
 	if (dist < 256) {
-		printf("(%d, %d), (%d, %d)", pos1.x, pos1.z, pos2.x, pos2.z);
+		if (testTri(pos1, pos2, DRHH) || !(flags & SHOW_DUB_FLAG))
+			return;
+		printf("2 (%d, %d), (%d, %d)", pos1.x, pos1.z, pos2.x, pos2.z);
 		if (flags & DIST_FLAG)
 			printf(", %lf", dist);
 		if (flags & ORIGIN_DIST_FLAG) {
-			double originDist = sqrt((((long)pos1.x)*pos1.x) + (((long)pos1.z)*pos1.z));
+			Pos origin = {0, 0};
+			double originDist = distance(pos1, origin);
 			printf(", %lf", originDist);
 		}
 		printf("\n");
@@ -41,13 +95,16 @@ long toNum(char* str) {
 }
 
 int main(int argc, char** argv) {
-	long seed = 0;
 	char seedSet = 0;
 	int minX = -100, minZ = -100, maxX = 100, maxZ = 100;
 
 	for (int i=1; i<argc; i++) {
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) { 
+			case '0' ... '9':
+				seedSet = 1;
+				seed = toNum(argv[i]);
+				break;
 			case 'h':
 				printf(
 				"Skephuts- Minecraft 1.16 Witch Hut finder\n"
@@ -55,12 +112,14 @@ int main(int argc, char** argv) {
 				"Usage: skephuts [options] <seed>\n"
 				"Valid options:\n"
 				"   -h      Prints this message.\n"
-				"   -d      Includes the distance from one witch hut to the other\n"
+				"   -d      Includes the average distance from one witch hut to another\n"
 				"   -o      Includes the distance from the first witch hut to the origin.\n"
 				"   -x      Set minimum X value that will be searched (in regions of 512x512 blocks). Default: -100\n"
 				"   -X      Set maximum X value that will be searched (in regions of 512x512 blocks). Default: 100\n"
 				"   -z      Set minimum Z value that will be searched (in regions of 512x512 blocks). Default: -100\n"
 				"   -Z      Set maximum Z value that will be searched (in regions of 512x512 blocks). Default: 100\n"
+				"   -D      Show double huts\n"
+				"   -T      Show triple huts\n"
 				);
 				return 0;
 			case 'd':
@@ -101,6 +160,12 @@ int main(int argc, char** argv) {
 					maxZ = (int) toNum(argv[i]);
 				}
 				break;
+			case 'D':
+				flags |= SHOW_DUB_FLAG;
+				break;
+			case 'T':
+				flags |= SHOW_TRI_FLAG;
+				break;
 			default:
 				printf("Unknown flag '-%c'. Use 'skephuts -h' for usage.\n", argv[i][1]);
 				return 1;
@@ -123,7 +188,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	
-	printf("Witch hut locations	");
+	printf("# | Witch hut locations	");
 	if (flags & DIST_FLAG)
 		printf("Distance between huts	");
 	if (flags & ORIGIN_DIST_FLAG)
@@ -137,11 +202,12 @@ int main(int argc, char** argv) {
 	applySeed(&g, seed);
 
 	//1 extra on each side for padding so accessing it for checking doesnt go out of bounds
-	size_t DRHHSize = ((maxX-minX)+1)*((maxZ-minZ)+1)*sizeof(int);
-	int (*doesRegionHaveHut)[(maxZ-minZ)+1] = malloc(DRHHSize);
+	size_t DRHHSize = ((maxX-minX)+1)*((maxZ-minZ)+1)*sizeof(char);
+	coll = (maxZ-minZ)+1;
+	char (*doesRegionHaveHut)[coll] = malloc(DRHHSize);
 	memset(doesRegionHaveHut, 0, DRHHSize);
 
-	int offsetX = (-minX)+1, offsetZ = (-minZ)+1;
+	offsetX = (-minX)+1, offsetZ = (-minZ)+1;
 
 	for (int x = minX; x < maxX; x++) {
 		for (int z = minZ; z < maxZ; z++) {
@@ -151,13 +217,13 @@ int main(int argc, char** argv) {
 				//printf("(%d, %d)\n", pos.x, pos.z);
 				doesRegionHaveHut[x+offsetX][z+offsetZ] = 1;
 				if (doesRegionHaveHut[x+offsetX-1][z+offsetZ] == 1)
-					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z));
-				if (doesRegionHaveHut[x+offsetX][z+offsetZ-1] == 1)
-					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x, z-1));
-				if (doesRegionHaveHut[x+offsetX-1][z+offsetZ-1] == 1)
-					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z-1));
-				if (doesRegionHaveHut[x+offsetX-1][z+offsetZ+1] == 1)
-					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z+1));
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z), doesRegionHaveHut);
+				else if (doesRegionHaveHut[x+offsetX][z+offsetZ-1] == 1)
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x, z-1), doesRegionHaveHut);
+				else if (doesRegionHaveHut[x+offsetX-1][z+offsetZ-1] == 1)
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z-1), doesRegionHaveHut);
+				else if (doesRegionHaveHut[x+offsetX-1][z+offsetZ+1] == 1)
+					possible(pos, getStructurePos(SWAMP_HUT_CONFIG, seed, x-1, z+1), doesRegionHaveHut);
 			}
 		}
 	}
@@ -165,7 +231,7 @@ int main(int argc, char** argv) {
 	freeGenerator(g);
 	free(doesRegionHaveHut);
 	clock_t end_time = clock();
-	printf("Found %d double huts in %lf seconds\n", count, ((double) end_time - start_time) / CLOCKS_PER_SEC);
+	printf("Found %d huts in %lf seconds\n", count, ((double) end_time - start_time) / CLOCKS_PER_SEC);
 
 	return 0;
 }
