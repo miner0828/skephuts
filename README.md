@@ -19,7 +19,7 @@ Valid options:
    
       -h      Prints this message.
    
-      -d      Includes the distance from one witch hut to the other
+      -d      Includes the average distance from one witch hut to another
    
       -o      Includes the distance from the first witch hut to the origin.
    
@@ -30,6 +30,10 @@ Valid options:
       -z      Set minimum Z value that will be searched (in regions of 512x512 blocks). Default: -100
    
       -Z      Set maximum Z value that will be searched (in regions of 512x512 blocks). Default: 100
+   
+      -D      Show double huts
+   
+      -T      Show triple huts
   
  
  ### Examples
