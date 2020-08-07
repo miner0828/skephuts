@@ -40,5 +40,5 @@ Valid options:
  
  ```sh
 skephuts -x-250 -X250 -z20 -Z100 -o -d 8054221181584912980 -D -T
-skephuts 8163259126493571 -T (quad seed, currently shows up as tri)
+skephuts 8163259126493571 (quad)
  ```
