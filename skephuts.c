@@ -27,6 +27,35 @@ static inline Pos blockToRegion(Pos pos) {
 	return region;
 }
 
+int possibleQuad(Pos pos1, char (*DRHH)[coll]) {
+	Pos region1 = blockToRegion(pos1);
+
+	if (DRHH[region1.x+offsetX][region1.z-1+offsetZ] && DRHH[region1.x-1+offsetX][region1.z+offsetZ] && DRHH[region1.x-1+offsetX][region1.z-1+offsetZ]) {
+		Pos	pos2 = getStructurePos(SWAMP_HUT_CONFIG, seed, region1.x, region1.z-1);
+		Pos	pos3 = getStructurePos(SWAMP_HUT_CONFIG, seed, region1.x-1, region1.z);
+		Pos	pos4 = getStructurePos(SWAMP_HUT_CONFIG, seed, region1.x-1, region1.z-1);
+		//printf("pos1234 (%d, %d), (%d, %d), (%d, %d), (%d, %d)\n", pos1.x, pos1.z, pos2.x, pos2.z, pos3.x, pos3.z, pos4.x, pos4.z);
+	
+		double dist12 = distance(pos1, pos2), dist23 = distance(pos2, pos3), dist34 = distance(pos3, pos4),
+		dist13 = distance(pos1, pos3), dist24 = distance(pos2, pos4), dist14 = distance(pos1, pos4);
+		//printf("dist %lf %lf %lf %lf %lf %lf\n", dist12, dist23, dist34, dist13, dist24, dist14);
+		if ((dist12 < 256) && (dist23 < 256) && (dist34 < 256) && (dist13 < 256) && (dist24 < 256) && (dist14 < 256)) {
+			printf("4 (%d, %d), (%d, %d), (%d, %d), (%d, %d)", pos1.x, pos1.z, pos2.x, pos2.z, pos3.x, pos3.z, pos4.x, pos4.z);
+			if (flags & DIST_FLAG)
+				printf(", %lf", (dist12 + dist23 + dist34 + dist13 + dist24 + dist14) / 6);
+			if (flags & ORIGIN_DIST_FLAG) {
+				Pos origin = {0, 0};
+				double originDist = distance(pos1, origin);
+				printf(", %lf", originDist);
+			}
+			printf("\n");
+			count++;
+			return 1;
+		}
+	}
+	return 0;
+}
+
 int possibleTri(Pos pos1, Pos pos2, Pos region2, int region3x, int region3z, char (*DRHH)[coll]) {
 	//printf("reg2x %d reg3x %d reg2z %d reg3z %d\n", region2.x, region3x, region2.z, region3z);
 	if ((DRHH[region3x+offsetX][region3z+offsetZ]) && !((region2.x == region3x) && (region2.z == region3z))) {
@@ -34,9 +63,8 @@ int possibleTri(Pos pos1, Pos pos2, Pos region2, int region3x, int region3z, cha
 
 		double dist12 = distance(pos1, pos2), dist23 = distance(pos2, pos3), dist13 = distance(pos1, pos3);
 		if ((dist12 < 256) && (dist23 < 256) && (dist13 < 256)) {
-			if (!(flags & SHOW_TRI_FLAG)) {
-				return 0;
-			}
+			if (possibleQuad(pos1, DRHH) || !(flags & SHOW_TRI_FLAG))
+				return 1;
 			printf("3 (%d, %d), (%d, %d), (%d, %d)", pos1.x, pos1.z, pos2.x, pos2.z, pos3.x, pos3.z);
 			if (flags & DIST_FLAG)
 				printf(", %lf", (dist12 + dist23 + dist13) / 3);
