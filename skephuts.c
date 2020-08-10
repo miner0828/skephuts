@@ -122,6 +122,14 @@ long toNum(char* str) {
 	return out;
 }
 
+int hashCode(char* str) {
+	int total = 0;
+	for (; *str != '\n'; str++)
+		total = (total * 31) + *str;
+
+	return total;
+}
+
 int main(int argc, char** argv) {
 	char seedSet = 0;
 	int minX = -100, minZ = -100, maxX = 100, maxZ = 100;
@@ -136,7 +144,6 @@ int main(int argc, char** argv) {
 			case 'h':
 				printf(
 				"Skephuts- Minecraft 1.16 Witch Hut finder\n"
-				"Note: String seeds are not yet supported, only numeric.\n"
 				"Usage: skephuts [options] <seed>\n"
 				"Valid options:\n"
 				"   -h      Prints this message.\n"
@@ -148,6 +155,7 @@ int main(int argc, char** argv) {
 				"   -Z      Set maximum Z value that will be searched (in regions of 512x512 blocks). Default: 100\n"
 				"   -D      Show double huts\n"
 				"   -T      Show triple huts\n"
+				"   -n      Specifies a non-numeric seed. Seed is acquired during runtime.\n"
 				);
 				return 0;
 			case 'd':
@@ -193,6 +201,17 @@ int main(int argc, char** argv) {
 				break;
 			case 'T':
 				flags |= SHOW_TRI_FLAG;
+				break;
+			case 'n':
+				printf("Seed: ");
+				char cseed[34] = {0}; //32 char limit + newline + null terminator = 32+1+1 = 34
+				if (fgets(cseed, sizeof(cseed), stdin) == NULL) {
+					printf("An error occurred whilist obtaining the seed.\n");
+					return 1;
+				}
+				seed = (long) hashCode(cseed);
+				printf("Numeric seed equivalent is %ld\n", seed);
+				seedSet = 1;
 				break;
 			default:
 				printf("Unknown flag '-%c'. Use 'skephuts -h' for usage.\n", argv[i][1]);
